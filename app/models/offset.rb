@@ -15,6 +15,6 @@ class Offset < ApplicationRecord
   private
 
   def generate_sku
-    self.sku ||= "#{name.parameterize}_#{SecureRandom.hex(16)}"
+    self.sku ||= "#{name.parameterize}_#{SecureRandom.hex(6)}"
   end
 end
