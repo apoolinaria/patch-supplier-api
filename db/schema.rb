@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_200307) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_212456) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,11 +27,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_200307) do
   create_table "offsets", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "mass_g", null: false
+    t.string "name", null: false
     t.integer "price_cents_usd", null: false
     t.bigint "project_id", null: false
     t.boolean "retired", default: false, null: false
+    t.string "sku", null: false
     t.datetime "updated_at", null: false
     t.index ["project_id"], name: "index_offsets_on_project_id"
+    t.index ["sku"], name: "index_offsets_on_sku", unique: true
   end
 
   create_table "orders", force: :cascade do |t|

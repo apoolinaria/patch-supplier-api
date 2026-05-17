@@ -5,6 +5,16 @@ class Offset < ApplicationRecord
   has_many :fulfillment_proofs, dependent: :destroy
   has_one :payout, dependent: :destroy
 
+  validates :name, presence: true
   validates :mass_g, presence: true, numericality: { greater_than: 0 }
   validates :price_cents_usd, presence: true, numericality: { greater_than: 0 }
+
+
+  before_validation :generate_sku, on: :create
+
+  private
+
+  def generate_sku
+    self.sku ||= "#{name.parameterize}_#{SecureRandom.hex(16)}"
+  end
 end
