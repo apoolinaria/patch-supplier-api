@@ -12,7 +12,7 @@ module Api
         if offset.save
           render json: offset, status: :created
         else
-          render json: { errors: offset.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: offset.errors.full_messages }, status: :unprocessable_content
         end
       end
 
