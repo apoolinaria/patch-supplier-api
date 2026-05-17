@@ -25,8 +25,8 @@ module Api
       end
 
       def handle_retirement(offset)
-        retired_offset = RetirementService.call(offset)
-        PayoutService.call(retired_offset) if retired_offset.retired?
+        retired_offset = ::RetirementService.call(offset)
+        ::PayoutService.call(retired_offset) if retired_offset.retired?
       end
     end
   end
