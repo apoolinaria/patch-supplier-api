@@ -1,0 +1,308 @@
+---
+openapi: 3.0.1
+info:
+  title: Patch Supplier API
+  version: v1
+  description: REST API for carbon offset suppliers to manage inventory, upload fulfillment
+    proofs, and view payouts.
+servers:
+- url: http://localhost:3000
+  description: Local development
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key issued per project (format: key_test_<hex>)'
+  schemas:
+    Offset:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Gold Standard REDD+ Congo Basin
+        sku:
+          type: string
+          example: gold-standard-redd-congo-basin-abc123
+        mass_g:
+          type: integer
+          example: 1000000
+          description: Total mass in grams
+        price_cents_usd:
+          type: integer
+          example: 50000
+          description: Price in USD cents
+        retired:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - project_id
+      - name
+      - sku
+      - mass_g
+      - price_cents_usd
+      - retired
+    OffsetInput:
+      type: object
+      properties:
+        offset:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Gold Standard REDD+ Congo Basin
+            mass_g:
+              type: integer
+              example: 1000000
+            price_cents_usd:
+              type: integer
+              example: 50000
+          required:
+          - name
+          - mass_g
+          - price_cents_usd
+    FulfillmentProof:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        offset_id:
+          type: integer
+          example: 3
+        mass_g:
+          type: integer
+          example: 500000
+        serial_number:
+          type: string
+          example: VCS-2024-00123
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - offset_id
+      - mass_g
+      - serial_number
+    FulfillmentProofInput:
+      type: object
+      properties:
+        fulfillment_proof:
+          type: object
+          properties:
+            mass_g:
+              type: integer
+              example: 500000
+            serial_number:
+              type: string
+              example: VCS-2024-00123
+          required:
+          - mass_g
+          - serial_number
+    PayoutList:
+      type: object
+      properties:
+        project_id:
+          type: integer
+          example: 1
+        payouts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              offset_id:
+                type: integer
+                example: 3
+              offset_name:
+                type: string
+                example: Gold Standard REDD+ Congo Basin
+              amount_cents_usd:
+                type: integer
+                example: 50000
+              status:
+                type: string
+                enum:
+                - pending_approval
+                - completed
+                example: pending_approval
+              created_at:
+                type: string
+                format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+          example:
+          - Name can't be blank
+          - Mass g must be greater than 0
+    UnauthorizedResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unauthorized
+    NotFoundResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Offset not found
+security:
+- bearerAuth: []
+paths:
+  "/api/v1/offsets/{offset_id}/fulfillment_proofs":
+    parameters:
+    - name: offset_id
+      in: path
+      required: true
+      description: ID of the offset to attach the proof to
+      schema:
+        type: integer
+    post:
+      summary: Upload a fulfillment proof for an offset
+      tags:
+      - Fulfillment Proofs
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: proof created (offset may be retired and payout queued as a
+            side effect)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/FulfillmentProof"
+        '422':
+          description: validation errors (e.g. duplicate serial number, mass exceeds
+            remaining capacity)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: offset not found or belongs to a different project
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NotFoundResponse"
+        '401':
+          description: invalid or missing API key
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UnauthorizedResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/FulfillmentProofInput"
+  "/api/v1/projects/{project_id}/offsets":
+    parameters:
+    - name: project_id
+      in: path
+      required: true
+      description: ID of the authenticated project
+      schema:
+        type: integer
+    get:
+      summary: List all offsets for the project
+      tags:
+      - Offsets
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: offsets returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Offset"
+        '401':
+          description: invalid or missing API key
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UnauthorizedResponse"
+    post:
+      summary: Create a new offset for the project
+      tags:
+      - Offsets
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: offset created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Offset"
+        '422':
+          description: validation errors
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '401':
+          description: invalid or missing API key
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UnauthorizedResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OffsetInput"
+  "/api/v1/projects/{project_id}/payouts":
+    parameters:
+    - name: project_id
+      in: path
+      required: true
+      description: ID of the authenticated project
+      schema:
+        type: integer
+    get:
+      summary: List all payouts for the project
+      tags:
+      - Payouts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: payouts returned
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PayoutList"
+        '401':
+          description: invalid or missing API key
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UnauthorizedResponse"
