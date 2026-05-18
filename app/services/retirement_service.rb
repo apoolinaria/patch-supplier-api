@@ -4,7 +4,7 @@ class RetirementService
     proofs_mass = offset.fulfillment_proofs.sum(:mass_g)
 
     # both conditions must hold: all mass sold (orders) AND all mass proven (proofs).
-    offset.update!(retired: true) if orders_mass >= offset.mass_g && proofs_mass >= offset.mass_g
+    offset.update!(retired: true) if orders_mass == offset.mass_g && proofs_mass == offset.mass_g
 
     offset
   end

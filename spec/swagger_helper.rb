@@ -105,7 +105,7 @@ RSpec.configure do |config|
               errors: {
                 type: :array,
                 items: { type: :string },
-                example: ["Name can't be blank", "Mass g must be greater than 0"]
+                example: [ "Name can't be blank", "Mass g must be greater than 0" ]
               }
             }
           },
