@@ -6,7 +6,7 @@ A Rails 8.1 API for carbon offset suppliers to manage inventory, upload fulfillm
 
 ## Requirements
 
-- Ruby 3.2.2
+- Ruby 3.4.4
 - PostgreSQL 14+
 - Bundler 2+
 
