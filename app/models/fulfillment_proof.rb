@@ -9,6 +9,9 @@ class FulfillmentProof < ApplicationRecord
   def mass_g_within_remaining_capacity
     return unless offset && mass_g
 
+    # Sum existing proofs to find how much capacity is left. This intentionally
+    # excludes the current record (not yet persisted), so the check is: can this
+    # new proof fit within what remains?
     already_proven = offset.fulfillment_proofs.sum(:mass_g)
     remaining = offset.mass_g - already_proven
 

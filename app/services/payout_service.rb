@@ -2,6 +2,8 @@ class PayoutService
   def self.call(offset)
     return if offset.payout.present?
 
+    # Status starts at pending_approval so the finance team has an explicit approval step
+    # before the payout is considered finalized.
     Payout.create!(
       project: offset.project,
       offset: offset,

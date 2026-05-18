@@ -15,6 +15,8 @@ class Offset < ApplicationRecord
   private
 
   def generate_sku
+    # The hex suffix ensures uniqueness even when two offsets share the same name.
+    # I use it as internal unique identifier for the offset.
     self.sku ||= "#{name.parameterize}_#{SecureRandom.hex(6)}"
   end
 end
