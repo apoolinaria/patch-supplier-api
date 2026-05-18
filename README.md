@@ -99,6 +99,45 @@ curl -X POST http://localhost:3000/api/v1/offsets/1/fulfillment_proofs \
 
 If this proof brings the total fulfilled mass up to the offset's full `mass_g` — and all of that mass has also been ordered — the offset is automatically **retired** and a payout is created with status `pending_approval`.
 
+### Trigger a payout via fulfillment proof (seeded example)
+
+The seed data leaves "DAC Phase 2" fully ordered with no fulfillment proofs yet. Uploading a single proof for the full mass retires the offset and creates a payout.
+
+`db:seed` prints each project's ID alongside its key:
+
+```
+[id=3] dac        → key_test_abc123...
+```
+
+Use that project ID to list offsets and find the "DAC Phase 2" ID:
+
+```bash
+curl -s http://localhost:3000/api/v1/projects/YOUR_DAC_PROJECT_ID/offsets \
+  -H "Authorization: Bearer YOUR_DAC_KEY"
+```
+
+Then upload the fulfillment proof using the "DAC Phase 2" offset ID from that response:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/offsets/DAC_PHASE_2_OFFSET_ID/fulfillment_proofs \
+  -H "Authorization: Bearer YOUR_DAC_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fulfillment_proof": {"mass_g": 10000000, "serial_number": "VCS-2024-DAC-001"}}'
+```
+
+Because the offset's orders already cover all 10,000,000 g, this single request:
+
+1. Records the fulfillment proof
+2. Retires the offset (marks it fulfilled)
+3. Creates a payout with status `pending_approval` for the `dac` project
+
+Confirm the payout was created:
+
+```bash
+curl http://localhost:3000/api/v1/projects/YOUR_DAC_PROJECT_ID/payouts \
+  -H "Authorization: Bearer YOUR_DAC_KEY"
+```
+
 ### List payouts
 
 Returns all payouts for the project, both `pending_approval` and `completed`, grouped by project ID.
